@@ -17,7 +17,7 @@ class Dictionary:
         LARGE_FONT = ("Times New Roman", 25, "bold")
         MEDIUM_FONT = ("Times New Roman", 15,)
 
-        data = json.load(open('076 data.json'))  # dictionary words
+        data = json.load(open('data.json'))  # dictionary words
 
         def meaning(word):
 
