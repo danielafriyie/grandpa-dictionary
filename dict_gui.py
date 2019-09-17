@@ -2,6 +2,7 @@ from tkinter import *
 import json
 from difflib import get_close_matches
 from tkinter import ttk
+import tkinter.messagebox as mbx
 
 
 class Dictionary:
@@ -11,160 +12,161 @@ class Dictionary:
         self.parent.title("Grandpa Dictionary (First Edition)")
         self.parent.configure(background="cyan")
         # self.parent.geometry("1600x900")
-        self.parent.resizable(height=False, width=False)
+        # self.parent.resizable(height=False, width=False)
 
         NORMAL_FONT = ("Times New Roman", 12)
         LARGE_FONT = ("Times New Roman", 25, "bold")
         MEDIUM_FONT = ("Times New Roman", 15,)
 
-        data = json.load(open('data.json'))  # dictionary words
-
-        def meaning(word):
-
-            # check for non-existing words
-            if word in data:
-                return data[word]
-
-            # check for Proper Nouns
-            elif word.title() in data:
-                return data[word.title()]
-
-            # check for acronyms(with all letters in upper case) eg: USA, NATO etc.
-            elif word.upper() in data:
-                return data[word.upper()]
-
-            # check for lower case input
-            elif word.lower() in data:
-                return data[word.lower()]
-
-        def search(event):
-            display_result.delete(0, END)
-            result = meaning(word_entry.get())
-            user_input = word_entry.get()
-
-            # display_words.delete(0, END)
-            # for items in get_close_matches(user_input, data.keys(), n=50,):
-            #   display_words.insert(END, items)
-
-            if len(word_entry.get()) <= 0:
-                display_words.delete(0, END)
-                for words in data.keys():
-                    display_words.insert(END, words)
-
-            elif type(result) == list:
-                for definitions in result:
-                    display_result.insert(END, definitions)
-
-            # check for similar words
-            elif len(get_close_matches(word_entry.get(), data.keys())) > 0:
-                result = meaning(get_close_matches(word_entry.get(), data.keys())[0])
-                word_entry.delete(0, END)
-                word_entry.insert(END, get_close_matches(user_input, data.keys())[0])
-                if type(result) == list:
-                    for definitions in result:
-                        display_result.insert(END, definitions)
-
-            else:
-                display_result.insert(END, result)
-
-        def search_btn_command():
-            display_result.delete(0, END)
-            result = meaning(word_entry.get())
-            user_input = word_entry.get()
-
-            # display_words.delete(0, END)
-            # for items in get_close_matches(user_input, data.keys(), n=50,):
-            #   display_words.insert(END, items)
-
-            if len(word_entry.get()) <= 0:
-                display_words.delete(0, END)
-                for words in data.keys():
-                    display_words.insert(END, words)
-
-            elif type(result) == list:
-                for definitions in result:
-                    display_result.insert(END, definitions)
-
-            # check for similar words
-            elif len(get_close_matches(word_entry.get(), data.keys())) > 0:
-                result = meaning(get_close_matches(word_entry.get(), data.keys())[0])
-                word_entry.delete(0, END)
-                word_entry.insert(END, get_close_matches(user_input, data.keys())[0])
-                if type(result) == list:
-                    for definitions in result:
-                        display_result.insert(END, definitions)
-
-            else:
-                display_result.insert(END, result)
+        self.data = json.load(open('data.json'))  # dictionary words
 
         # =================== Frames ===================================
-        label_frame = Frame(self.parent, bd=2, pady=5, padx=5, relief=SUNKEN, )
-        label_frame.grid(row=0, pady=5, padx=5)
+        self.label_frame = Frame(self.parent, bd=2, pady=5, padx=5, relief=SUNKEN, )
+        self.label_frame.pack(padx=10, pady=10)
 
-        entries_frame = Frame(self.parent, bd=1, pady=5, padx=5, relief=SUNKEN, )
-        entries_frame.grid(row=1, pady=5, padx=5)
+        self.entries_frame = Frame(self.parent, bd=1, pady=5, padx=5, relief=SUNKEN, )
+        self.entries_frame.pack(padx=10, pady=10)
 
-        result_frame = Frame(self.parent, bd=1, pady=5, padx=5, relief=SUNKEN, )
-        result_frame.grid(row=2, pady=5, padx=5)
+        self.result_frame = Frame(self.parent, bd=1, pady=5, padx=5, relief=SUNKEN, )
+        self.result_frame.pack(expand=True, fill=BOTH, padx=10, pady=5)
 
         # ================== Label ==============================
-        dic_label = Label(label_frame, text="GRANDPA DICTIONARY", font=LARGE_FONT, padx=10, pady=5, )
-        dic_label.grid(row=0, columnspan=3, pady=5, padx=5)
+        self.dic_label = Label(self.label_frame, text="GRANDPA DICTIONARY", font=LARGE_FONT, padx=10, pady=5, )
+        self.dic_label.grid(row=0, columnspan=3, pady=5, padx=5)
 
         # =================== Entries ==========================
-        word_label = Label(entries_frame, text="Enter word here: ", font=NORMAL_FONT)
-        word_label.grid(row=0, column=0, sticky=W, padx=10)
+        self.word_label = Label(self.entries_frame, text="Enter word here: ", font=NORMAL_FONT)
+        self.word_label.grid(row=0, column=0, sticky=W, padx=10)
 
-        word_entry_var = StringVar()
-        word_entry = Entry(entries_frame, width=40, font=MEDIUM_FONT, textvariable=word_entry_var)
-        word_entry.grid(row=0, column=1, sticky=W, padx=10)
-        word_entry.bind("<Return>", search)
+        self.word_entry_var = StringVar()
+        self.word_entry = Entry(self.entries_frame, width=40, font=MEDIUM_FONT, textvariable=self.word_entry_var)
+        self.word_entry.grid(row=0, column=1, sticky=W, padx=10)
+        self.word_entry.bind("<Return>", self.search)
 
-        search_button = Button(entries_frame, text="Search", font=NORMAL_FONT, padx=10, width=15, relief=RIDGE,
-                               command=search_btn_command)
-        search_button.grid(row=0, column=2, padx=10)
+        self.search_button = Button(self.entries_frame, text="Search", font=NORMAL_FONT, padx=10, width=15,
+                                    relief=RIDGE,
+                                    command=self.search_btn_command)
+        self.search_button.grid(row=0, column=2, padx=10)
 
         # ==================== Result box ===============================
-        display_words = Listbox(result_frame, font=NORMAL_FONT, height=30, width=25)
-        display_words.grid(row=0, rowspan=10, columnspan=1, padx=5, pady=5)
+        self.display_words = Listbox(self.result_frame, font=NORMAL_FONT, width=25)
+        self.display_words.pack(fill=Y, side=LEFT)
 
-        for definitions in data.keys():
-            display_words.insert(END, definitions)
+        self.display_words.bind("<<ListboxSelect>>", self.get_selected_data)
 
-        def get_selected_data(event):
-            try:
-                index = display_words.curselection()[0]
-                selected_data = display_words.get(index)
-                word_entry.delete(0, END)
-                word_entry.insert(END, selected_data)
+        self.display_scroll_bar = ttk.Scrollbar(self.result_frame)
+        self.display_scroll_bar.pack(fill=Y, side=LEFT)
 
-                display_result.delete(0, END)
-                result = meaning(selected_data)
+        self.display_words.configure(yscrollcommand=self.display_scroll_bar.set)
+        self.display_scroll_bar.configure(command=self.display_words.yview)
 
-                if type(result) == list:
-                    for definitions in result:
-                        display_result.insert(END, definitions)
-                else:
-                    display_result.insert(END, result)
-            except IndexError:
-                pass
+        self.display_result = Text(self.result_frame, font=NORMAL_FONT,)
+        self.display_result.pack(side=LEFT, fill=BOTH, expand=True)
 
-        display_words.bind("<<ListboxSelect>>", get_selected_data)
+        for definitions in self.data.keys():
+            self.display_words.insert(END, definitions)
 
-        display_scroll_bar = ttk.Scrollbar(result_frame)
-        display_scroll_bar.grid(row=0, column=2, rowspan=10, sticky='ns')
+    def meaning(self, word):
 
-        display_words.configure(yscrollcommand=display_scroll_bar.set)
-        display_scroll_bar.configure(command=display_words.yview)
+        # check for non-existing words
+        if word in self.data:
+            return self.data[word]
 
-        display_result = Listbox(result_frame, font=NORMAL_FONT, height=30, width=160)
-        display_result.grid(row=0, rowspan=10, column=3, columnspan=5, padx=5, pady=5)
+        # check for Proper Nouns
+        elif word.title() in self.data:
+            return self.data[word.title()]
 
-        # result_scroll_bar = Scrollbar(result_frame)
-        # result_scroll_bar.grid(row=1, column=3, columnspan=5)
+        # check for acronyms(with all letters in upper case) eg: USA, NATO etc.
+        elif word.upper() in self.data:
+            return self.data[word.upper()]
 
-        # display_result.configure(xscrollcommand=result_scroll_bar.set)
-        # result_scroll_bar.configure(command=display_result.xview)
+        # check for lower case input
+        elif word.lower() in self.data:
+            return self.data[word.lower()]
+
+    def search(self, event):
+        self.display_result.delete(1.0, END)
+        result = self.meaning(self.word_entry.get())
+        user_input = self.word_entry.get()
+
+        # self.display_words.delete(0, END)
+        # for items in get_close_matches(user_input, self.data.keys(), n=50,):
+        #   self.display_words.insert(END, items)
+
+        if self.word_entry.get() == "":
+            mbx.showinfo("", "You have not entered anything")
+
+        elif len(self.word_entry.get()) <= 0:
+            self.display_words.delete(0, END)
+            for words in self.data.keys():
+                self.display_words.insert(END, words)
+
+        elif type(result) == list:
+            for definitions in result:
+                self.display_result.insert(END, definitions)
+
+        # check for similar words
+        elif len(get_close_matches(self.word_entry.get(), self.data.keys())) > 0:
+            result = self.meaning(get_close_matches(self.word_entry.get(), self.data.keys())[0])
+            self.word_entry.delete(0, END)
+            self.word_entry.insert(END, get_close_matches(user_input, self.data.keys())[0])
+            if type(result) == list:
+                for definitions in result:
+                    self.display_result.insert(END, definitions)
+
+        else:
+            self.display_result.insert(END, result)
+
+    def search_btn_command(self):
+        self.display_result.delete(1.0, END)
+        result = self.meaning(self.word_entry.get())
+        user_input = self.word_entry.get()
+
+        # self.display_words.delete(0, END)
+        # for items in get_close_matches(user_input, self.data.keys(), n=50,):
+        #   self.display_words.insert(END, items)
+
+        if self.word_entry.get() == "":
+            mbx.showinfo("", "You have not entered anything")
+
+        elif len(self.word_entry.get()) <= 0:
+            self.display_words.delete(0, END)
+            for words in self.data.keys():
+                self.display_words.insert(END, words)
+
+        elif type(result) == list:
+            for definitions in result:
+                self.display_result.insert(END, definitions)
+
+        # check for similar words
+        elif len(get_close_matches(self.word_entry.get(), self.data.keys())) > 0:
+            result = self.meaning(get_close_matches(self.word_entry.get(), self.data.keys())[0])
+            self.word_entry.delete(0, END)
+            self.word_entry.insert(END, get_close_matches(user_input, self.data.keys())[0])
+            if type(result) == list:
+                for definitions in result:
+                    self.display_result.insert(END, definitions)
+            else:
+                self.display_result.insert(END, result)
+
+    def get_selected_data(self, event):
+        try:
+            index = self.display_words.curselection()[0]
+            selected_data = self.display_words.get(index)
+            self.word_entry.delete(0, END)
+            self.word_entry.insert(END, selected_data)
+
+            self.display_result.delete(1.0, END)
+            result = self.meaning(selected_data)
+
+            if type(result) == list:
+                for definitions in result:
+                    self.display_result.insert(END, definitions)
+            else:
+                self.display_result.insert(END, result)
+        except IndexError:
+            print("IndexError: << check get_selected_data method >>")
+            pass
 
 
 if __name__ == "__main__":
